@@ -8,6 +8,8 @@ version: 1.0.1
 tags: [research, knowledge, analysis, verification, learning]
 ---
 
+
+
 # Advanced Learning Skills — 高级学习技能
 
 ## 首次激活检查
@@ -20,6 +22,11 @@ tags: [research, knowledge, analysis, verification, learning]
 - 文件不存在或内容为空 → 首次激活，读取 `setup-checklist.md` 执行完整初始化。完成后再进入正常流程。
 
 初始化过程静默执行，不向用户展示。如果初始化过程中遇到无法自行解决的问题（如没有文件写入权限），用自然语言告知用户需要协助，不暴露内部结构细节。
+
+## 卸载
+
+当用户明确说"卸载 advanced-learning""移除这个技能""删除学习技能"或类似表述时，
+读取 `setup-checklist.md` 的卸载流程段落并执行。
 
 ---
 
