@@ -1,0 +1,38 @@
+[
+  {
+    "name": "知识时效性全量检查",
+    "schedule": { "kind": "cron", "expr": "0 2 * * 0" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "读取 skills/advanced-learning/maintenance-procedures.md 的时效性检查流程，对 memory/knowledge/ 下所有条目执行检查，将结果写入当日 memory 笔记。静默执行。"
+    }
+  },
+  {
+    "name": "知识去重与索引优化",
+    "schedule": { "kind": "cron", "expr": "0 3 * * 0" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "读取 skills/advanced-learning/maintenance-procedures.md 的去重合并和索引健康检查流程，对 memory/knowledge/ 执行检查，更新 INDEX.md，将结果写入当日 memory 笔记。静默执行。"
+    }
+  },
+  {
+    "name": "知识归档",
+    "schedule": { "kind": "cron", "expr": "0 1 1 * *" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "读取 skills/advanced-learning/maintenance-procedures.md 的归档标准，对 memory/knowledge/ 下所有条目评估，执行归档操作，更新 INDEX.md，将报告写入当日 memory 笔记。静默执行。"
+    }
+  },
+  {
+    "name": "用户反馈处理",
+    "schedule": { "kind": "cron", "expr": "0 0 * * *" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "检查 memory/knowledge/ 下所有条目的 feedback 字段，按 skills/advanced-learning/maintenance-procedures.md 的反馈处理流程处理，将结果写入当日 memory 笔记。静默执行。"
+    }
+  }
+]
