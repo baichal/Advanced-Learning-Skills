@@ -1,4 +1,3 @@
-
 # 初始化检查与修复
 
 本文件在技能首次激活时读取。按顺序执行以下全部步骤，缺失项立即创建修复。
@@ -259,3 +258,121 @@ version: 1.0.0
 ```
 返回 SKILL.md 继续处理用户原始问题。
 
+**存在 ✗：**
+对失败项重试一次。仍失败则：
+
+1. 在当日 memory 笔记记录具体失败项
+2. 按以下降级表继续运行，不完全中止：
+
+| 失败项 | 降级行为 |
+|--------|---------|
+| 目录创建失败 | 沉淀功能关闭，仅写入当日 memory 笔记。研究和回答功能正常。 |
+| INDEX.md 创建失败 | 同上 |
+| 辅助文件缺失 | 对应功能使用 SKILL.md 简要指引替代 |
+| cron 注册失败 | 无定时维护，依赖 HEARTBEAT.md 心跳 |
+| AGENTS.md 写入失败 | 不自动路由，需用户手动触发技能 |
+| HEARTBEAT.md 写入失败 | 无心跳维护，依赖 cron |
+| cron 和 HEARTBEAT 都失败 | 无自动维护，需用户手动触发 |
+
+3. 用自然语言告知用户有部分配置未完成，说明哪些功能可能受限。不暴露内部文件路径和结构细节。
+
+---
+
+## 卸载流程
+
+当用户明确要求卸载、移除或禁用 Advanced Learning Skills 时执行。
+按顺序执行以下全部步骤。每步执行前确认，每步执行后验证。
+
+### 卸载步骤 1：移除定时任务
+
+删除以下 4 个 cron 任务（按名称匹配）：
+
+```
+知识时效性全量检查
+知识去重与索引优化
+知识归档
+用户反馈处理
+```
+
+验证：列出 cron 任务列表，确认以上 4 个名称不存在。
+
+### 卸载步骤 2：清理 HEARTBEAT.md
+
+读取 workspace 根目录的 HEARTBEAT.md。
+删除从 `# 心跳任务（Advanced Learning Skills）` 开始到文件末尾或下一个同级 `---` 分隔线之前的全部内容，包括该标题上方紧邻的 `---` 分隔线。
+
+- 删除后文件内仍有其他内容 → 保留文件。
+- 删除后文件为空或只剩空白 → 删除整个文件。
+- 文件不存在 → 跳过。
+
+### 卸载步骤 3：清理 AGENTS.md
+
+读取 workspace 根目录的 AGENTS.md。
+删除从 `# 行为规范补充（Advanced Learning Skills）` 开始到文件末尾或下一个同级 `---` 分隔线之前的全部内容，包括该标题上方紧邻的 `---` 分隔线。
+
+- 删除后文件内仍有其他内容 → 保留文件。
+- 删除后文件为空或只剩空白 → 删除整个文件。
+- 文件不存在 → 跳过。
+
+### 卸载步骤 4：处理知识库数据
+
+询问用户：
+
+> 知识库中积累的知识条目要一起删除吗？还是保留下来？
+
+**用户选择删除：**
+删除 `memory/knowledge/` 目录及其下全部内容，包括：
+
+```
+memory/knowledge/.installed
+memory/knowledge/INDEX.md
+memory/knowledge/技术/          ← 及其下所有 .md 文件
+memory/knowledge/业务/          ← 及其下所有 .md 文件
+memory/knowledge/事实/          ← 及其下所有 .md 文件
+memory/knowledge/方法论/        ← 及其下所有 .md 文件
+memory/knowledge/archive/       ← 及其下所有 .md 文件
+```
+
+**用户选择保留：**
+仅删除安装标记文件 `memory/knowledge/.installed`。
+知识条目、INDEX.md、目录结构全部保留。
+在当日 memory 笔记中记录：知识库数据已保留在 memory/knowledge/，但管理技能已卸载，数据不再自动维护。
+
+**用户未明确回复：**
+默认保留数据，按"用户选择保留"处理。
+
+### 卸载步骤 5：删除技能文件
+
+删除 `skills/advanced-learning/` 目录及其下全部文件：
+
+```
+skills/advanced-learning/SKILL.md
+skills/advanced-learning/setup-checklist.md
+skills/advanced-learning/research-methodology.md
+skills/advanced-learning/knowledge-schema.md
+skills/advanced-learning/maintenance-procedures.md
+```
+
+### 卸载步骤 6：验证卸载
+
+逐项验证：
+
+1. 列出 cron 任务 → 确认 4 个任务不存在
+2. 读取 AGENTS.md → 确认不包含 "Advanced Learning Skills"
+3. 读取 HEARTBEAT.md → 确认不包含 "Advanced Learning Skills"
+4. 列出 skills/ 目录 → 确认 advanced-learning/ 不存在
+5. 如果用户选择删除数据 → 确认 memory/knowledge/ 不存在
+6. 如果用户选择保留数据 → 确认 memory/knowledge/.installed 不存在
+
+**全部通过：**
+在当日 memory 笔记写入：
+
+```
+[Advanced Learning Skills] 已卸载 {当前日期时间}
+知识库数据：{已删除/已保留}
+```
+
+用自然语言告知用户卸载完成。
+
+**存在失败项：**
+告知用户哪些项未能自动清理，用自然语言描述需要手动处理的内容，不暴露具体文件路径。
