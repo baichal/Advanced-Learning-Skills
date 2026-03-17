@@ -1,13 +1,18 @@
+
 # 初始化检查与修复
 
-本文件在技能首次激活时读取。按顺序执行以下检查，缺失项立即创建修复。
-全部静默执行。只有在遇到无法自行解决的权限问题时才告知用户。
+本文件在技能首次激活时读取。按顺序执行以下全部步骤，缺失项立即创建修复。
+全部静默执行。只有在遇到无法自行解决的权限问题时才用自然语言告知用户需要协助。
 
-## 检查清单
+## 前置判断
 
-按顺序逐项执行。每项检查后标记结果，全部通过后在当日 memory 笔记中记录初始化完成时间。
+读取 `memory/knowledge/.installed` 文件。
+- 文件存在且包含 `installed: true` → 初始化已完成，停止阅读本文件，返回 SKILL.md 继续正常流程。
+- 文件不存在 → 继续执行以下全部步骤。
 
-### 1. 目录结构
+---
+
+## 步骤 1：创建目录结构
 
 检查以下目录是否存在，不存在则创建：
 
@@ -20,15 +25,17 @@ memory/knowledge/方法论/
 memory/knowledge/archive/
 ```
 
-检查方式：尝试列出目录内容。失败则创建。
+检查方式：尝试列出目录内容。列出失败则创建该目录。
 
-### 2. 索引文件
+---
+
+## 步骤 2：创建索引文件
 
 检查 `memory/knowledge/INDEX.md` 是否存在且内容完整。
 
-不存在或为空 → 创建，写入以下内容：
+- 不存在或为空 → 创建文件，写入以下内容（完整复制，`{当前日期时间}` 替换为实际时间）：
 
-
+~~~markdown
 # 知识库索引
 
 > 最后更新：{当前日期时间}
@@ -44,11 +51,13 @@ memory/knowledge/archive/
 ## 知识缺口
 
 暂无
+~~~
 
+- 存在但缺少表头或结构损坏 → 保留已有条目数据行，修复表头和分区结构。
 
-存在但缺少表头或结构损坏 → 保留已有条目数据，修复结构。
+---
 
-### 3. 技能辅助文件
+## 步骤 3：检查技能辅助文件
 
 检查以下文件是否可读取：
 
@@ -60,28 +69,24 @@ skills/advanced-learning/maintenance-procedures.md
 
 检查方式：尝试读取每个文件的前几行。
 
-- 全部可读 → 通过
-- 某个不可读 → 记录缺失文件名到当日 memory 笔记，标记为"技能文件缺失"。该技能仍可运行，但缺失的辅助文件对应的功能降级：
-  - research-methodology.md 缺失 → 慢通道仍可执行，但使用 SKILL.md 中的简要指引，不进行精细的来源评估
-  - knowledge-schema.md 缺失 → 沉淀时使用简化结构（仅保存 id、summary、tags、confidence、正文）
-  - maintenance-procedures.md 缺失 → 跳过维护任务，记录到 memory 笔记
+- 全部可读 → 通过。
+- 某个不可读 → 记录缺失文件名到当日 memory 笔记，标记为"技能文件缺失"。缺失文件对应的功能降级：
+  - research-methodology.md 缺失 → 慢通道使用 SKILL.md 中的简要指引，不进行精细来源评估
+  - knowledge-schema.md 缺失 → 沉淀时使用简化结构（仅 id、summary、tags、confidence、正文）
+  - maintenance-procedures.md 缺失 → 跳过维护任务
 
-### 4. cron 任务注册
+不因辅助文件缺失中止安装流程，继续执行后续步骤。
 
-检查以下 4 个定时任务是否已注册：
+---
 
-```
-知识时效性全量检查    — 每周日 02:00
-知识去重与索引优化    — 每周日 03:00
-知识归档             — 每月 1 日 01:00
-用户反馈处理         — 每日 00:00
-```
+## 步骤 4：注册定时任务
 
-检查方式：读取 cron 任务列表，匹配任务名称。
+检查以下 4 个定时任务是否已注册。检查方式：读取 cron 任务列表，匹配任务名称。
 
-- 全部存在 → 通过
-- 部分或全部缺失 → 从以下定义逐个注册缺失的任务：
+全部存在 → 通过。
+部分或全部缺失 → 逐个注册缺失的任务，定义如下：
 
+**任务 1：**
 ```json
 {
   "name": "知识时效性全量检查",
@@ -94,6 +99,7 @@ skills/advanced-learning/maintenance-procedures.md
 }
 ```
 
+**任务 2：**
 ```json
 {
   "name": "知识去重与索引优化",
@@ -106,6 +112,7 @@ skills/advanced-learning/maintenance-procedures.md
 }
 ```
 
+**任务 3：**
 ```json
 {
   "name": "知识归档",
@@ -118,6 +125,7 @@ skills/advanced-learning/maintenance-procedures.md
 }
 ```
 
+**任务 4：**
 ```json
 {
   "name": "用户反馈处理",
@@ -130,16 +138,21 @@ skills/advanced-learning/maintenance-procedures.md
 }
 ```
 
-- 注册失败（无权限或 cron 服务不可用）→ 记录到当日 memory 笔记。维护任务将依赖 HEARTBEAT.md 的心跳检查作为降级方案。
+注册失败（无权限或 cron 服务不可用）→ 记录到当日 memory 笔记。维护任务将依赖 HEARTBEAT.md 的心跳检查作为降级方案。不因注册失败中止安装流程。
 
-### 5. AGENTS.md 检查
+---
 
-检查 workspace 根目录的 `AGENTS.md` 是否包含 advanced-learning 相关的行为规范。
+## 步骤 5：配置 AGENTS.md
 
-检查方式：读取 AGENTS.md，搜索关键词"advanced-learning"或"先检索再行动"。
+读取 workspace 根目录的 AGENTS.md，搜索关键词 "Advanced Learning Skills"。
 
-- 找到 → 通过
-- 未找到 → 在 AGENTS.md 末尾追加以下内容（不覆盖已有内容）：
+- 找到 → 通过，跳到步骤 6。
+- 未找到但文件存在 → 在文件末尾追加下方内容。
+- 文件不存在 → 创建文件，写入下方内容。
+
+要写入的内容（完整复制）：
+
+~~~markdown
 
 ---
 
@@ -169,17 +182,21 @@ skills/advanced-learning/maintenance-procedures.md
 ## 知识沉淀
 
 所有知识沉淀操作静默执行，不向用户展示任何沉淀过程、文件路径、条目ID、标签信息。用户不需要知道知识库的存在。
+~~~
 
-- AGENTS.md 不存在 → 创建文件，写入上述完整内容
+---
 
-### 6. HEARTBEAT.md 检查
+## 步骤 6：配置 HEARTBEAT.md
 
-检查 workspace 根目录的 `HEARTBEAT.md` 是否包含 advanced-learning 相关的心跳任务。
+读取 workspace 根目录的 HEARTBEAT.md，搜索关键词 "Advanced Learning Skills"。
 
-检查方式：读取 HEARTBEAT.md，搜索关键词"知识时效"或"检索未命中"。
+- 找到 → 通过，跳到步骤 7。
+- 未找到但文件存在 → 在文件末尾追加下方内容。
+- 文件不存在 → 创建文件，写入下方内容。
 
-- 找到 → 通过
-- 未找到 → 在 HEARTBEAT.md 末尾追加以下内容（不覆盖已有内容）：
+要写入的内容（完整复制）：
+
+~~~markdown
 
 ---
 
@@ -205,3 +222,40 @@ skills/advanced-learning/maintenance-procedures.md
 - 在条目中追加反馈记录
 - 高频条目（call_count > 10）→ 标记"紧急待验证"
 - 其他 → 标记"待验证"
+~~~
+
+---
+
+## 步骤 7：写入安装标记
+
+创建 `memory/knowledge/.installed`，写入：
+
+```yaml
+installed: true
+time: {当前日期时间}
+version: 1.0.0
+```
+
+---
+
+## 步骤 8：验证安装
+
+逐项验证：
+
+1. 列出 `memory/knowledge/` 目录 → 确认 技术/、业务/、事实/、方法论/、archive/ 存在
+2. 读取 `memory/knowledge/INDEX.md` 前 3 行 → 确认包含"知识库索引"
+3. 读取 `AGENTS.md` → 确认包含 "Advanced Learning Skills"
+4. 读取 `HEARTBEAT.md` → 确认包含 "Advanced Learning Skills"
+5. 列出 cron 任务 → 确认 4 个任务名称存在
+6. 读取 `memory/knowledge/.installed` → 确认包含 `installed: true`
+
+每项标记 ✓ 或 ✗。
+
+**全部 ✓：**
+在当日 memory 笔记写入：
+```
+[Advanced Learning Skills] 初始化完成 {当前日期时间}
+全部 6 项检查通过。
+```
+返回 SKILL.md 继续处理用户原始问题。
+
